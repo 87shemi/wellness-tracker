@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="90-Day Prep">
+<meta name="theme-color" content="#F6F3EA">
+<title>90-Day Wellness Physique Prep</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --night:#F6F3EA;         /* page background — soft cream */
+    --panel:#FFFFFF;         /* card background */
+    --panel-2:#EFEAD8;       /* input / recessed background */
+    --line:#DCD2B8;          /* borders */
+    --ink:#33312A;           /* primary text */
+    --ink-dim:#847C67;       /* secondary text */
+    --amber:#C79A45;         /* gold — spending / totals */
+    --amber-soft:rgba(199,154,69,.16);
+    --rose:#C17B87;          /* dusty rose — body / fasting */
+    --sage:#6E8F63;          /* primary green — water / meals */
+    --violet:#3F5A3A;        /* deep moss — training / upper day */
+    --r:14px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--night);
+    color:var(--ink);
+    font-family:'Inter',system-ui,sans-serif;
+    font-size:15px;
+    line-height:1.5;
+    padding-bottom:env(safe-area-inset-bottom);
+    overscroll-behavior-y:none;
+  }
+  .wrap{max-width:520px;margin:0 auto;padding:0 14px 90px}
+
+  /* ---------- Header ---------- */
+  header{
+    position:sticky;top:0;z-index:20;
+    background:linear-gradient(180deg,var(--night) 72%,rgba(12,17,34,0));
+    padding:14px 0 10px;
+  }
+  .navrow{display:flex;align-items:center;gap:10px}
+  .navbtn{
+    flex:0 0 42px;height:42px;border-radius:12px;
+    background:var(--panel);border:1px solid var(--line);
+    color:var(--ink);font-size:17px;cursor:pointer;
+    display:grid;place-items:center;
+  }
+  .navbtn:active{background:var(--panel-2)}
+  .datebox{flex:1;text-align:center;line-height:1.15}
+  .dow{
+    font-family:'Archivo Expanded','Inter',sans-serif;font-weight:700;
+    font-size:19px;letter-spacing:.02em;
+  }
+  .dstamp{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-dim);margin-top:3px}
+  .daychip{
+    display:inline-block;margin-top:7px;padding:3px 11px;border-radius:999px;
+    font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.09em;
+    text-transform:uppercase;font-weight:500;
+  }
+  .c-up{background:rgba(155,123,212,.16);color:var(--violet)}
+  .c-low{background:rgba(111,176,140,.16);color:var(--sage)}
+  .c-rest{background:var(--amber-soft);color:var(--amber)}
+
+  /* ---------- Dawn arc (signature) ---------- */
+  .arc{margin-top:12px;position:relative}
+  .arc svg{display:block;width:100%;height:46px;overflow:visible}
+  .arclabels{
+    display:flex;justify-content:space-between;
+    font-family:'IBM Plex Mono',monospace;font-size:9.5px;color:var(--ink-dim);
+    letter-spacing:.06em;margin-top:2px;
+  }
+  .arcnote{
+    text-align:center;font-family:'IBM Plex Mono',monospace;
+    font-size:10.5px;color:var(--amber);letter-spacing:.05em;margin-top:5px;
+  }
+
+  /* ---------- Affirmation ---------- */
+  .affirm{
+    margin:14px 0 4px;padding:13px 15px;border-radius:var(--r);
+    background:linear-gradient(100deg,rgba(110,143,99,.14),rgba(199,154,69,.12));
+    border:1px solid rgba(110,143,99,.28);
+    font-size:13.5px;line-height:1.45;font-style:italic;color:#3A4A34;
+  }
+  .caffirm-group{
+    padding:0 0 11px;margin-bottom:9px;border-bottom:1px dashed var(--line);
+  }
+  .caffirm-line{
+    font-size:12.5px;font-style:italic;color:var(--sage);
+    line-height:1.45;margin-bottom:4px;
+  }
+  .caffirm-line:last-child{margin-bottom:0}
+
+  /* ---------- Cards ---------- */
+  .card{
+    background:var(--panel);border:1px solid var(--line);
+    border-radius:var(--r);margin-top:12px;overflow:hidden;
+  }
+  .chead{
+    display:flex;align-items:center;gap:10px;
+    padding:14px 15px;cursor:pointer;user-select:none;
+  }
+  .chead:active{background:var(--panel-2)}
+  .bar{width:3px;height:19px;border-radius:2px;flex:0 0 3px}
+  .ctitle{
+    flex:1;font-family:'Archivo Expanded','Inter',sans-serif;font-weight:600;
+    font-size:12.5px;letter-spacing:.07em;text-transform:uppercase;
+  }
+  .cmeta{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-dim)}
+  .chev{color:var(--ink-dim);font-size:12px;transition:transform .18s}
+  .open .chev{transform:rotate(90deg)}
+  .cbody{display:none;padding:0 15px 16px}
+  .open .cbody{display:block}
+
+  /* ---------- Fields ---------- */
+  .row{display:flex;align-items:center;gap:12px;padding:9px 0;border-top:1px solid var(--line)}
+  .row:first-child{border-top:0}
+  .lab{flex:1;font-size:13.5px;color:var(--ink-dim)}
+  input,textarea{
+    font-family:'Inter',sans-serif;font-size:15px;color:var(--ink);
+    background:var(--panel-2);border:1px solid var(--line);
+    border-radius:10px;padding:9px 11px;width:100%;
+  }
+  input:focus,textarea:focus{outline:2px solid var(--amber);outline-offset:1px;border-color:transparent}
+  input.num{width:82px;flex:0 0 82px;text-align:center;font-family:'IBM Plex Mono',monospace}
+  textarea{resize:vertical;min-height:62px;line-height:1.45}
+  .stack{padding:9px 0;border-top:1px solid var(--line)}
+  .stack:first-child{border-top:0}
+  .stack .lab{margin-bottom:6px;display:block}
+
+  /* ---------- Exercise table ---------- */
+  .exgrid{
+    display:grid;grid-template-columns:2.1fr .62fr .62fr .85fr;
+    gap:6px 5px;align-items:center;margin-top:2px;
+  }
+  .exgrid .h{
+    font-family:'IBM Plex Mono',monospace;font-size:8.5px;color:var(--ink-dim);
+    text-transform:uppercase;letter-spacing:.06em;padding-bottom:2px;
+  }
+  .exgrid input{padding:7px 6px;font-size:12.5px;text-align:center}
+  .exgrid input.exname{text-align:left;font-size:12px}
+
+  /* ---------- Toggle ---------- */
+  .tog{
+    flex:0 0 auto;min-width:60px;height:36px;border-radius:10px;
+    border:1px solid var(--line);background:var(--panel-2);
+    color:var(--ink-dim);font-size:14px;font-weight:600;cursor:pointer;
+  }
+  .tog.on{background:rgba(111,176,140,.18);border-color:var(--sage);color:var(--sage)}
+
+  /* ---------- Stepper ---------- */
+  .step{display:flex;align-items:center;gap:8px;flex:0 0 auto}
+  .sbtn{
+    width:38px;height:38px;border-radius:10px;flex:0 0 38px;
+    background:var(--panel-2);border:1px solid var(--line);color:var(--ink);
+    font-size:19px;line-height:1;cursor:pointer;display:grid;place-items:center;
+  }
+  .sbtn:active{background:var(--amber-soft);border-color:var(--amber)}
+  .sval{
+    min-width:42px;text-align:center;font-family:'IBM Plex Mono',monospace;
+    font-size:18px;font-weight:500;
+  }
+  .sval.zero{color:var(--ink-dim)}
+
+  /* ---------- Water dots ---------- */
+  .dots{display:flex;gap:7px;flex-wrap:wrap;padding-top:4px}
+  .dot{
+    width:38px;height:38px;border-radius:50%;cursor:pointer;
+    border:1.5px solid var(--line);background:var(--panel-2);
+    display:grid;place-items:center;font-size:15px;
+  }
+  .dot.on{background:rgba(111,176,140,.2);border-color:var(--sage)}
+
+  /* ---------- Totals ---------- */
+  .total{
+    display:flex;align-items:baseline;justify-content:space-between;
+    margin-top:12px;padding:11px 13px;border-radius:11px;
+    background:var(--amber-soft);border:1px solid rgba(242,160,61,.26);
+  }
+  .total .k{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--amber)}
+  .total .v{font-family:'Archivo Expanded','Inter',sans-serif;font-weight:700;font-size:21px;color:var(--amber)}
+  .total .v small{font-size:12px;font-weight:500;color:var(--ink-dim);margin-left:3px}
+
+  .hint{
+    font-family:'IBM Plex Mono',monospace;font-size:10.5px;
+    color:var(--ink-dim);padding:9px 0 2px;line-height:1.5;
+  }
+  .muted{
+    padding:16px 4px;text-align:center;color:var(--ink-dim);
+    font-size:13px;font-style:italic;line-height:1.5;
+  }
+
+  /* ---------- View tabs ---------- */
+  .viewtabs{display:flex;gap:8px;margin-top:14px}
+  .vtab{
+    flex:1;height:38px;border-radius:11px;cursor:pointer;
+    background:var(--panel);border:1px solid var(--line);color:var(--ink-dim);
+    font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.05em;
+    text-transform:uppercase;
+  }
+  .vtab.active{background:var(--violet);border-color:var(--violet);color:#F3EFE2}
+
+  /* ---------- Dashboard ---------- */
+  .dcard{
+    background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+    margin-top:12px;padding:15px;
+  }
+  .dtitle{
+    font-family:'Archivo Expanded','Inter',sans-serif;font-weight:600;
+    font-size:12px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-dim);
+    margin-bottom:11px;
+  }
+  .progresswrap{display:flex;align-items:center;gap:12px;margin-bottom:4px}
+  .progressbar{flex:1;height:10px;border-radius:6px;background:var(--panel-2);overflow:hidden}
+  .progressfill{height:100%;background:var(--sage);border-radius:6px}
+  .progresslabel{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-dim);white-space:nowrap}
+  .startrow{display:flex;align-items:center;gap:10px;margin-top:12px}
+  .startrow input{flex:0 0 auto;width:auto}
+
+  .statgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+  .stat{
+    background:var(--panel-2);border-radius:11px;padding:12px 13px;
+  }
+  .stat .sv{font-family:'Archivo Expanded','Inter',sans-serif;font-weight:700;font-size:22px;color:var(--ink)}
+  .stat .sv small{font-size:12px;font-weight:500;color:var(--ink-dim);margin-left:2px}
+  .stat .sk{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.05em;
+    text-transform:uppercase;color:var(--ink-dim);margin-top:3px}
+
+  .heat{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-top:4px}
+  .heatcell{aspect-ratio:1;border-radius:4px;background:var(--panel-2)}
+  .heatcell.trained{background:var(--violet)}
+  .heatcell.rest{background:var(--amber-soft);border:1px solid var(--amber)}
+  .heatcell.missed{background:rgba(193,123,135,.4)}
+  .heatcell.future{background:var(--panel-2);opacity:.5}
+  .heatlegend{display:flex;gap:14px;margin-top:10px;flex-wrap:wrap}
+  .heatlegend span{
+    display:flex;align-items:center;gap:5px;font-family:'IBM Plex Mono',monospace;
+    font-size:9.5px;color:var(--ink-dim);
+  }
+  .heatlegend i{width:9px;height:9px;border-radius:2px;display:inline-block}
+
+  .sparkwrap svg{display:block;width:100%;height:90px}
+
+  /* ---------- Save bar ---------- */
+  .savebar{
+    position:fixed;left:0;right:0;bottom:0;z-index:30;
+    padding:11px 14px calc(11px + env(safe-area-inset-bottom));
+    background:linear-gradient(0deg,var(--night) 62%,rgba(12,17,34,0));
+  }
+  .savebar .in{max-width:520px;margin:0 auto;display:flex;gap:9px;align-items:center}
+  .save{
+    flex:1;height:48px;border-radius:13px;border:0;cursor:pointer;
+    background:var(--amber);color:#1A1206;
+    font-family:'Archivo Expanded','Inter',sans-serif;font-weight:700;
+    font-size:13px;letter-spacing:.07em;text-transform:uppercase;
+  }
+  .save:active{transform:scale(.985)}
+  .save.done{background:var(--sage);color:#08160E}
+  .today{
+    flex:0 0 auto;height:48px;padding:0 15px;border-radius:13px;cursor:pointer;
+    background:var(--panel);border:1px solid var(--line);color:var(--ink-dim);
+    font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.05em;
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div class="navrow">
+      <button class="navbtn" id="prev" aria-label="Previous day">‹</button>
+      <div class="datebox">
+        <div class="dow" id="dow">—</div>
+        <div class="dstamp" id="dstamp">—</div>
+        <span class="daychip" id="chip">—</span>
+      </div>
+      <button class="navbtn" id="next" aria-label="Next day">›</button>
+    </div>
+
+    <div class="arc">
+      <svg id="arcsvg" viewBox="0 0 340 46" preserveAspectRatio="none" aria-hidden="true"></svg>
+      <div class="arclabels"><span>00</span><span>04 TRAIN</span><span>12 EAT</span><span>20 CLOSE</span><span>24</span></div>
+      <div class="arcnote" id="arcnote"></div>
+    </div>
+  </header>
+
+  <div class="viewtabs">
+    <button class="vtab" id="tab-day" data-view="day">Today's Log</button>
+    <button class="vtab" id="tab-dash" data-view="dash">90-Day Dashboard</button>
+  </div>
+
+  <div class="affirm" id="affirm"></div>
+  <div id="cards"></div>
+  <div id="dashboard" style="display:none"></div>
+</div>
+
+<div class="savebar">
+  <div class="in" id="savebar-in">
+    <button class="save" id="save">Save day</button>
+    <button class="today" id="todaybtn">Today</button>
+  </div>
+</div>
+
+<script>
+/* ============ Protocol ============ */
+const SPLIT = {
+  1:{n:'Upper Body A', f:'Chest · Shoulders · Triceps · Core', t:'up',   pp:true },
+  2:{n:'Lower Body A', f:'Glutes · Quads · Hamstrings · Calves', t:'low', pp:false},
+  3:{n:'Upper Body B', f:'Back · Biceps · Rear Delts · Core',  t:'up',   pp:true },
+  4:{n:'Upper Body C', f:'Shoulders · Back · Arms',            t:'up',   pp:true },
+  5:{n:'Lower Body B', f:'Glutes · Hamstrings · Abductors',    t:'low',  pp:false},
+  6:{n:'Rest — Sabbath', f:'No training today',                t:'rest', pp:false},
+  0:{n:'Lower Body C', f:'Active recovery · Fast begins 8 PM', t:'low',  pp:false},
+};
+const AFFIRM = {
+  general:[
+    "I am grateful for my journey and growth.",
+    "I am grateful for all the lessons that shape my growth.",
+    "I am constantly growing, evolving, and improving.",
+    "I am creating positive change in my life and the lives around me.",
+    "I am proud of the progress I make every day.",
+    "I am aligned with my highest purpose and vision.",
+    "I am creating the life I've always dreamed of, right here in Bermuda.",
+    "I am proud of the life I am building.",
+    "I am stepping forward with clarity and confidence.",
+    "I am the powerful creator of my reality.",
+    "I am capable of doing hard things. I get better every single day.",
+    "I trust the process of life.",
+    "I choose to be happy today.",
+    "I am exactly where I'm meant to be.",
+    "I am becoming the woman Bermuda will recognize as unstoppable.",
+    "I am worthy of all the good coming into my life.",
+    "I am thriving in every area of my life.",
+    "I am committed to living my best life.",
+    "My presence is my power. Today I show up for me.",
+    "I bring light with me wherever I go.",
+    "I am open to new possibilities and adventures.",
+    "I am grateful for the opportunities coming my way.",
+    "Ninety days. One decision at a time. Watch what happens.",
+    "I am proof that consistency changes everything.",
+    "I am attracting love, joy, and prosperity into my life.",
+    "I am releasing all fear and embracing opportunity.",
+  ],
+  body:[
+    "I love myself unconditionally.",
+    "I am worthy of love and respect.",
+    "I am proud of who I am.",
+    "I am confident in myself and my worth.",
+    "I embrace what makes me unique.",
+    "I accept and embrace myself as I am.",
+    "I am enough as I am.",
+    "I am kind to myself and to others.",
+    "I embrace my flaws and imperfections.",
+    "I prioritize myself and my well-being.",
+    "I love being my most authentic self.",
+    "I am radiant and filled with light.",
+    "I trust myself and my intuition.",
+    "I am beautiful inside and out.",
+    "I am loved and cherished.",
+    "I believe in myself. I trust myself.",
+    "I am strong, brave, and beautiful.",
+    "I choose love over fear.",
+    "I honor my body with patience and grace.",
+    "My presence is my power. Today I show up for me.",
+    "I am ready to thrive as my highest self.",
+    "I deserve to be happy. My heart is full and free.",
+  ],
+  supp:[
+    "Every glass, every dose, is an act of self-respect.",
+    "I care for myself in small ways that build a big life.",
+    "I am worthy of the energy and vitality I'm building.",
+    "I nourish my cells with every sip.",
+    "Small rituals build a radiant life.",
+    "I am disciplined in the details that matter.",
+    "I honor my body's needs without hesitation.",
+    "I am hydrated, energized, and ready.",
+    "Consistency in the small things builds the big things.",
+    "I am building habits my future self will thank me for.",
+  ],
+  train:[
+    "I am strong, brave, and beautiful — the weights don't scare me.",
+    "I believe in my inner strength, especially at 4 AM.",
+    "I am proud of how far I've come since I started this journey.",
+    "I choose discipline, and discipline is choosing me.",
+    "I am the powerful creator of this body and this life.",
+    "Every rep is proof of the discipline no one sees.",
+    "Strong is a feeling I'm building set by set.",
+    "I train like the champion I already am.",
+    "I am capable of doing hard things. I get better every single day.",
+    "My strength today is my confidence tomorrow.",
+    "I show up even when it's hard — that's who I am.",
+    "I am building a body that reflects my discipline.",
+    "Every set is a vote for the woman I'm becoming.",
+    "I am unstoppable in this hour before the world wakes up.",
+    "I trust my training. I trust my body.",
+    "I am getting stronger with every session.",
+    "This is how champions are made — quietly, consistently.",
+    "I am proud of the effort no one else sees.",
+  ],
+  cardio:[
+    "Every step is proof I show up for myself.",
+    "I am energized, light, and free with every walk.",
+    "Movement is how I celebrate what my body can already do.",
+    "I move my body because I love it, not to punish it.",
+    "Each step outside clears my mind and strengthens my body.",
+    "I am building endurance, one walk at a time.",
+    "I choose movement, I choose momentum.",
+    "My body thanks me for every walk I take.",
+    "I am consistent, even when motivation is low.",
+    "Fresh air, steady steps, stronger me.",
+  ],
+  meals:[
+    "I nourish myself the way I nourish the people I love.",
+    "My body is worthy of the best fuel I can give it.",
+    "I am grateful for food that helps me become who I'm building.",
+    "Every meal is an act of self-respect.",
+    "I fuel my body with intention and love.",
+    "I am building strength with every nourishing bite.",
+    "Food is fuel, and I choose fuel that serves me.",
+    "I trust my body to use what I give it wisely.",
+    "I am grateful for abundance on my plate.",
+    "I nourish my goals with every meal.",
+    "Eating well is how I invest in my future self.",
+  ],
+  spend:[
+    "I am a wise steward of my money and my future.",
+    "Every dollar I invest in myself comes back multiplied.",
+    "I attract abundance and use it with intention.",
+    "I am building wealth with clarity and purpose.",
+    "My money reflects my priorities, and my priorities are clear.",
+    "I am grateful for the abundance flowing into my life.",
+    "I spend with intention and save with discipline.",
+    "I am worthy of financial freedom.",
+    "Every investment in myself builds Bermuda's next great business leader.",
+    "I trust myself with money the way I trust myself with my goals.",
+  ],
+  learn:[
+    "My mind is limitless — I grow a little more every day.",
+    "I am constantly evolving, learning, improving.",
+    "Knowledge is another form of the wealth I'm building.",
+    "I am curious, capable, and always growing.",
+    "Every page I read makes me sharper.",
+    "I invest in my mind the way I invest in my body.",
+    "I am building an unstoppable knowledge base.",
+    "Learning today is leading tomorrow.",
+    "I am becoming the most informed version of myself.",
+    "My growth compounds daily.",
+  ],
+  biz:[
+    "I am the most successful business owner in Bermuda — I act like her today.",
+    "I am building a legacy Bermuda will remember.",
+    "My business is a stepping stone to lasting wealth and impact.",
+    "I attract clients who value my expertise and are excited to invest.",
+    "I am resilient — every challenge makes my business stronger.",
+    "I am the captain of this ship, and it is headed exactly where I want it.",
+    "Bermuda hasn't seen a businesswoman like me yet.",
+    "I have everything I need to be wildly successful.",
+    "I give myself permission to focus fully on what's important.",
+    "Progress is a form of success; I celebrate small wins.",
+    "I walk through fear toward the goals I have set for myself.",
+    "I have inherent value and so does my business.",
+    "I am dedicated to building a business that aligns with my heart.",
+    "My work makes a difference.",
+    "I invest daily in myself and my business.",
+    "I contain an abundance of ideas and solutions.",
+    "Self-discipline is a precursor to success.",
+    "The life I am building is worth every effort.",
+    "I am confident in my ability to lead a thriving business.",
+    "Financial success flows to me with ease and abundance.",
+    "I am becoming the best business owner in Bermuda, one decision at a time.",
+    "I attract my ideal clients with clarity and ease.",
+  ],
+  evening:[
+    "I am grateful for the lessons this day gave me.",
+    "Whatever today held, I showed up — and that is everything.",
+    "I release today with love and welcome tomorrow with confidence.",
+    "I trust myself, I trust my intuition, I trust what's next.",
+    "I am proud of how I showed up today.",
+    "Tonight I rest, tomorrow I rise stronger.",
+    "I let go of what didn't serve me today.",
+    "I am grateful for this day, exactly as it was.",
+    "I trust the quiet moments to reveal what I need.",
+    "I close today with peace and open tomorrow with purpose.",
+    "I am becoming more myself with every passing day.",
+    "Rest is productive. I allow myself to receive it.",
+  ],
+};
+
+// Seeded shuffle so each day's picks feel fresh rather than repeating in a fixed order
+function ahash(str){ let h=0; for(let i=0;i<str.length;i++){ h=(h*31+str.charCodeAt(i))|0; } return Math.abs(h); }
+function seededShuffle(arr, seed){
+  const a = arr.slice();
+  let s = seed % 2147483647; if(s<=0) s += 2147483646;
+  const rand = () => { s = (s*16807) % 2147483647; return (s-1)/2147483646; };
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(rand()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+function pickAffirms(section, count){
+  const pool = AFFIRM[section];
+  const dayIndex = Math.floor(cur.getTime()/86400000);
+  const cycle = Math.floor(dayIndex / pool.length);           // reshuffles fresh each time pool is exhausted
+  const posInCycle = dayIndex % pool.length;
+  const shuffled = seededShuffle(pool, cycle*7919 + ahash(section));
+  const picks = [];
+  for(let i=0;i<count;i++){ picks.push(shuffled[(posInCycle+i) % pool.length]); }
+  return picks;
+}
+function caffirmBlock(section, count){
+  return `<div class="caffirm-group">${pickAffirms(section,count).map(l=>`<div class="caffirm-line">${l}</div>`).join('')}</div>`;
+}
+
+/* ============ State ============ */
+const WATER_UNIT_OZ = 12;   // each dot = 12oz
+const WATER_DOTS = 8;       // 8 dots ≈ 96oz, within your 85–100oz target
+const pad = n => String(n).padStart(2,'0');
+const key = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+let cur = new Date();
+let data = {};
+let dirty = false;
+
+const blank = () => ({
+  weight:'', energy:'', sleep:'', cycle:'',
+  water:0, creatine:false, aminos:false, vitamins:false,
+  trained:false, push:[0,0,0], pull:[0,0,0],
+  exercises:[{n:'',s:'',r:'',w:''},{n:'',s:'',r:'',w:''},{n:'',s:'',r:'',w:''},
+             {n:'',s:'',r:'',w:''},{n:'',s:'',r:'',w:''},{n:'',s:'',r:'',w:''}],
+  feel:'',
+  cardioDone:false, cardioMin:'', route:'', steps:'',
+  meals:[{n:'',p:''},{n:'',p:''},{n:'',p:''},{n:'',p:''}],
+  spend:{food:'',supp:'',gym:'',biz:'',other:''},
+  learn:'', insight:'', learnMin:'',
+  win:'', revenue:'', nextStep:'',
+  practices:{mirror:false, reverse:false, future:false, silence:false, patterns:false},
+  practiceNote:'',
+  journal:''
+});
+
+const openSections = new Set(['body','train','meals']);
+let ready = false;
+
+/* ============ Storage (on-device, works standalone) ============ */
+const LS_PREFIX = 'wellness90:day:';
+async function load(k){
+  try{
+    const raw = localStorage.getItem(LS_PREFIX+k);
+    if(!raw) return blank();
+    const parsed = JSON.parse(raw);
+    const merged = blank();
+    for(const key in parsed){ merged[key] = parsed[key]; }
+    if(parsed.spend) merged.spend = Object.assign({food:'',supp:'',gym:'',biz:'',other:''}, parsed.spend);
+    if(parsed.practices) merged.practices = Object.assign({mirror:false,reverse:false,future:false,silence:false,patterns:false}, parsed.practices);
+    if(!Array.isArray(parsed.exercises) || parsed.exercises.length!==6){
+      merged.exercises = [{n:'',s:'',r:'',w:''},{n:'',s:'',r:'',w:''},{n:'',s:'',r:'',w:''},
+                           {n:'',s:'',r:'',w:''},{n:'',s:'',r:'',w:''},{n:'',s:'',r:'',w:''}];
+    }
+    return merged;
+  }catch(e){
+    return blank();
+  }
+}
+async function save(){
+  const btn = document.getElementById('save');
+  try{
+    localStorage.setItem(LS_PREFIX+key(cur), JSON.stringify(data));
+    dirty = false;
+    btn.textContent = 'Saved'; btn.classList.add('done');
+    setTimeout(()=>{ btn.textContent='Save day'; btn.classList.remove('done'); }, 1400);
+  }catch(e){
+    btn.textContent = "Couldn't save — storage may be full";
+    setTimeout(()=>{ btn.textContent='Save day'; }, 3000);
+  }
+}
+
+/* ============ Signature: dawn arc ============ */
+function drawArc(){
+  const dow = cur.getDay();
+  const rest = dow === 6;
+  const now = new Date();
+  const same = key(now) === key(cur);
+  const hr = now.getHours() + now.getMinutes()/60;
+  const X = h => 4 + (h/24)*332;
+
+  // Sunday closes the window at 20:00 into the long fast
+  const eatEnd = dow === 0 ? 20 : 20.5;
+
+  const seg = (a,b,fill,op=1) =>
+    `<rect x="${X(a)}" y="16" width="${X(b)-X(a)}" height="13" rx="3" fill="${fill}" opacity="${op}"/>`;
+
+  let s = '';
+  s += seg(0,24,'#EFEAD8');                                  // base: fasted
+  if(!rest) s += seg(4,5.5,'#3F5A3A',.9);                    // training block
+  s += seg(12,eatEnd,'#6E8F63',.85);                         // eating window
+  if(dow === 0) s += seg(20,24,'#C17B87',.8);                // extended fast begins
+
+  // tick marks
+  [4,12,20].forEach(h=>{
+    s += `<line x1="${X(h)}" y1="12" x2="${X(h)}" y2="33" stroke="#DCD2B8" stroke-width="1"/>`;
+  });
+
+  if(same){
+    s += `<line x1="${X(hr)}" y1="8" x2="${X(hr)}" y2="37" stroke="#C79A45" stroke-width="2"/>`;
+    s += `<circle cx="${X(hr)}" cy="8" r="3.5" fill="#C79A45"/>`;
+  }
+  document.getElementById('arcsvg').innerHTML = s;
+
+  const note = document.getElementById('arcnote');
+  if(!same){ note.textContent = ''; return; }
+  if(dow === 0 && hr >= 20)      note.textContent = 'Extended fast in progress — until Tue 12 PM';
+  else if(hr < 4)                note.textContent = `Fasted · ${(4-hr).toFixed(1)}h until training`;
+  else if(hr < 5.5 && !rest)     note.textContent = 'Training window — aminos in the bottle';
+  else if(hr < 12)               note.textContent = `Fasted · ${(12-hr).toFixed(1)}h until you eat`;
+  else if(hr < eatEnd)           note.textContent = `Eating window · ${(eatEnd-hr).toFixed(1)}h remaining`;
+  else                           note.textContent = 'Window closed — creatine before bed';
+}
+
+/* ============ Render ============ */
+const esc = s => String(s??'').replace(/"/g,'&quot;');
+
+function card(id,color,title,meta,body){
+  const on = openSections.has(id);
+  return `<section class="card ${on?'open':''}" data-card="${id}">
+    <div class="chead" data-toggle="${id}">
+      <span class="bar" style="background:${color}"></span>
+      <span class="ctitle">${title}</span>
+      <span class="cmeta" data-meta="${id}">${meta}</span>
+      <span class="chev">›</span>
+    </div>
+    <div class="cbody">${body}</div>
+  </section>`;
+}
+const field = (lab,k,ph='',type='text') =>
+  `<div class="row"><span class="lab">${lab}</span>
+   <input class="num" type="${type}" inputmode="${type==='number'?'decimal':'text'}"
+   placeholder="${ph}" value="${esc(data[k])}" data-f="${k}"></div>`;
+const area = (lab,k,ph) =>
+  `<div class="stack"><span class="lab">${lab}</span>
+   <textarea placeholder="${ph}" data-f="${k}">${esc(data[k])}</textarea></div>`;
+const toggle = (lab,k) =>
+  `<div class="row"><span class="lab">${lab}</span>
+   <button class="tog ${data[k]?'on':''}" data-t="${k}">${data[k]?'Done':'—'}</button></div>`;
+
+function stepper(lab,arr,i){
+  const v = data[arr][i];
+  return `<div class="row"><span class="lab">${lab}</span>
+    <div class="step">
+      <button class="sbtn" data-s="${arr}:${i}:-1">−</button>
+      <span class="sval ${v===0?'zero':''}" data-sv="${arr}:${i}">${v}</span>
+      <button class="sbtn" data-s="${arr}:${i}:1">+</button>
+    </div></div>`;
+}
+
+function proteinTotal(){
+  return data.meals.reduce((s,m)=>s + (parseFloat(m.p)||0), 0);
+}
+function spendTotal(){
+  return Object.values(data.spend).reduce((s,v)=>s + (parseFloat(v)||0), 0);
+}
+
+/* ============ Dashboard ============ */
+let view = 'day';
+const START_KEY = 'wellness90:start';
+
+function getStart(){
+  let s = localStorage.getItem(START_KEY);
+  if(!s){ s = key(new Date()); localStorage.setItem(START_KEY, s); }
+  return s;
+}
+function setStart(dateStr){ localStorage.setItem(START_KEY, dateStr); }
+function dateFromKey(k){ const [y,m,d] = k.split('-').map(Number); return new Date(y,m-1,d); }
+
+function computeDashboard(){
+  const startStr = getStart();
+  const start = dateFromKey(startStr);
+  const today = new Date(); today.setHours(0,0,0,0);
+  const days = [];
+  for(let i=0;i<90;i++){
+    const d = new Date(start.getTime() + i*86400000);
+    const k = key(d);
+    let dayData = null;
+    try{ const raw = localStorage.getItem(LS_PREFIX+k); if(raw) dayData = JSON.parse(raw); }catch(e){}
+    days.push({date:d, key:k, data:dayData, dow:d.getDay()});
+  }
+
+  let trained=0, cardioSessions=0, cardioMinTotal=0, proteinSum=0, proteinDays=0,
+      waterSum=0, waterDays=0, spendSum=0, wins=0, learnDays=0, journalDays=0,
+      bestPush=0, bestPull=0, practiceDays=0;
+  const weightPoints = [];
+
+  days.forEach(day=>{
+    if(!day.data) return;
+    const d = day.data;
+    if(d.trained) trained++;
+    if(d.cardioDone) cardioSessions++;
+    if(d.cardioMin) cardioMinTotal += parseFloat(d.cardioMin)||0;
+    const p = (d.meals||[]).reduce((s,m)=>s+(parseFloat(m.p)||0),0);
+    if(p>0){ proteinSum+=p; proteinDays++; }
+    if(d.water){ waterSum += d.water*WATER_UNIT_OZ; waterDays++; }
+    if(d.spend) spendSum += Object.values(d.spend).reduce((s,v)=>s+(parseFloat(v)||0),0);
+    if(d.win) wins++;
+    if(d.learn) learnDays++;
+    if(d.journal) journalDays++;
+    if(d.practices && Object.values(d.practices).some(Boolean)) practiceDays++;
+    if(Array.isArray(d.push) && d.push.length) bestPush = Math.max(bestPush, ...d.push);
+    if(Array.isArray(d.pull) && d.pull.length) bestPull = Math.max(bestPull, ...d.pull);
+    if(day.dow===1 && d.weight) weightPoints.push({key:day.key, w:parseFloat(d.weight)});
+  });
+
+  const daysLogged = days.filter(d=>d.data).length;
+  const daysElapsed = days.filter(d=>d.date<=today).length;
+  const weightChange = weightPoints.length>=2 ? (weightPoints[weightPoints.length-1].w - weightPoints[0].w) : null;
+
+  return { days, startStr, today, daysLogged, daysElapsed, trained, cardioSessions, cardioMinTotal,
+    avgProtein: proteinDays ? Math.round(proteinSum/proteinDays) : 0,
+    avgWater: waterDays ? Math.round(waterSum/waterDays) : 0,
+    spendSum, wins, learnDays, journalDays, practiceDays, bestPush, bestPull, weightPoints, weightChange };
+}
+
+function renderDashboard(){
+  const s = computeDashboard();
+  const pct = Math.round((s.daysElapsed/90)*100);
+
+  // 90-day heatmap
+  let heatCells = '';
+  s.days.forEach(day=>{
+    let cls = 'future';
+    if(day.date <= s.today){
+      if(day.dow === 6) cls = 'rest';
+      else if(day.data && day.data.trained) cls = 'trained';
+      else if(day.date < s.today) cls = 'missed';
+      else cls = 'future';
+    }
+    heatCells += `<div class="heatcell ${cls}" title="${day.key}"></div>`;
+  });
+
+  // weight sparkline
+  let sparkHtml;
+  if(s.weightPoints.length >= 2){
+    const vals = s.weightPoints.map(p=>p.w);
+    const min = Math.min(...vals) - 1, max = Math.max(...vals) + 1;
+    const W = 320, H = 80, pad = 6;
+    const xStep = (W - pad*2) / (s.weightPoints.length - 1);
+    const yFor = v => H - pad - ((v-min)/(max-min))*(H-pad*2);
+    const pts = s.weightPoints.map((p,i)=>`${pad+i*xStep},${yFor(p.w).toFixed(1)}`).join(' ');
+    const dots = s.weightPoints.map((p,i)=>
+      `<circle cx="${pad+i*xStep}" cy="${yFor(p.w).toFixed(1)}" r="3" fill="#6E8F63"/>`).join('');
+    sparkHtml = `<div class="sparkwrap"><svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+      <polyline points="${pts}" fill="none" stroke="#6E8F63" stroke-width="2"/>${dots}
+      </svg></div>
+      <div class="hint">${s.weightPoints[0].w} lbs → ${s.weightPoints[s.weightPoints.length-1].w} lbs
+      (Monday weigh-ins, ${s.weightPoints.length} logged)</div>`;
+  }else{
+    sparkHtml = `<div class="muted">Log your weight on Mondays to see your trend appear here.</div>`;
+  }
+
+  const stat = (v,k,suf='') => `<div class="stat"><div class="sv">${v}<small>${suf}</small></div><div class="sk">${k}</div></div>`;
+
+  document.getElementById('dashboard').innerHTML = `
+    <div class="dcard">
+      <div class="dtitle">Program progress</div>
+      <div class="progresswrap">
+        <div class="progressbar"><div class="progressfill" style="width:${pct}%"></div></div>
+        <div class="progresslabel">Day ${Math.min(s.daysElapsed,90)} / 90</div>
+      </div>
+      <div class="hint">${s.daysLogged} of ${s.daysElapsed} days logged so far</div>
+      <div class="startrow">
+        <span class="lab">Program start date</span>
+        <input type="date" id="startdate" value="${s.startStr}">
+      </div>
+    </div>
+
+    <div class="dcard">
+      <div class="dtitle">At a glance</div>
+      <div class="statgrid">
+        ${stat(s.trained,'training sessions')}
+        ${stat(s.cardioSessions,'cardio walks')}
+        ${stat(s.avgProtein,'avg protein/day','g')}
+        ${stat(s.avgWater,'avg water/day','oz')}
+        ${stat('$'+s.spendSum.toFixed(0),'total spent')}
+        ${stat(s.wins,'business wins logged')}
+        ${stat(s.learnDays,'learning sessions')}
+        ${stat(s.journalDays,'evening journals')}
+        ${stat(s.bestPush,'best push-up set')}
+        ${stat(s.bestPull,'best pull-up set')}
+      </div>
+    </div>
+
+    <div class="dcard">
+      <div class="dtitle">Weight trend</div>
+      ${sparkHtml}
+    </div>
+
+    <div class="dcard">
+      <div class="dtitle">90-day training map</div>
+      <div class="heat">${heatCells}</div>
+      <div class="heatlegend">
+        <span><i style="background:var(--violet)"></i>Trained</span>
+        <span><i style="background:var(--amber-soft);border:1px solid var(--amber)"></i>Rest day</span>
+        <span><i style="background:rgba(193,123,135,.4)"></i>Missed</span>
+        <span><i style="background:var(--panel-2)"></i>Upcoming</span>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('startdate').addEventListener('change', e=>{
+    setStart(e.target.value);
+    renderDashboard();
+  });
+}
+
+function setView(v){
+  view = v;
+  document.getElementById('tab-day').classList.toggle('active', v==='day');
+  document.getElementById('tab-dash').classList.toggle('active', v==='dash');
+  document.getElementById('cards').style.display = v==='day' ? '' : 'none';
+  document.getElementById('affirm').style.display = v==='day' ? '' : 'none';
+  document.querySelector('header').style.display = v==='day' ? '' : 'none';
+  document.getElementById('dashboard').style.display = v==='dash' ? '' : 'none';
+  const bar = document.getElementById('savebar-in');
+  if(v==='dash'){
+    bar.innerHTML = `<button class="today" id="backbtn" style="flex:1">Back to today's log</button>`;
+    document.getElementById('backbtn').onclick = ()=> setView('day');
+    renderDashboard();
+  }else{
+    bar.innerHTML = `<button class="save" id="save">Save day</button><button class="today" id="todaybtn">Today</button>`;
+    document.getElementById('save').onclick = ()=>{ if(ready) save(); };
+    document.getElementById('todaybtn').onclick = todayHandler;
+  }
+}
+
+function render(){
+  const dow = cur.getDay();
+  const day = SPLIT[dow];
+  const rest = day.t === 'rest';
+  const sunday = dow === 0;
+
+  document.getElementById('dow').textContent =
+    cur.toLocaleDateString(undefined,{weekday:'long'});
+  document.getElementById('dstamp').textContent =
+    cur.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}).toUpperCase();
+  const chip = document.getElementById('chip');
+  chip.textContent = day.n;
+  chip.className = 'daychip ' + (rest?'c-rest':day.t==='up'?'c-up':'c-low');
+
+  document.getElementById('affirm').innerHTML =
+    pickAffirms('general',2).map(l=>`<div>${l}</div>`).join('<div style="height:6px"></div>');
+
+  drawArc();
+
+  const P = proteinTotal(), S = spendTotal();
+  let html = '';
+
+  /* Body */
+  html += card('body','#C17B87','Body','',
+    caffirmBlock('body',3) +
+    (dow===1
+      ? field('Body weight (lbs)','weight','145','number')
+      : `<div class="row"><span class="lab">Body weight</span>
+         <span class="cmeta">Monday only</span></div>`) +
+    field('Energy (1–10)','energy','7','number') +
+    field('Sleep last night (hrs)','sleep','7','number') +
+    area('Cycle notes','cycle','Anything worth noting')
+  );
+
+  /* Water & supplements */
+  const wOz = data.water * WATER_UNIT_OZ;
+  const wDots = Array.from({length:WATER_DOTS},(_,i)=>
+    `<button class="dot ${i<data.water?'on':''}" data-w="${i}">${i<data.water?'●':''}</button>`).join('');
+  html += card('supp','#6E8F63','Water &amp; supplements',
+    `${wOz}oz`,
+    caffirmBlock('supp',2) +
+    `<div class="stack"><span class="lab">Water — tap to fill (${WATER_UNIT_OZ}oz each)</span>
+       <div class="dots">${wDots}</div>
+       <div class="hint">${wOz}oz of ~${WATER_UNIT_OZ*WATER_DOTS}oz target</div></div>` +
+    toggle('Creatine 5g — before bed','creatine') +
+    (rest ? '' : toggle('BCAAs + EAAs — during training','aminos')) +
+    toggle('B12 · D3+K2 · Omega-3 — with Meal 1','vitamins')
+  );
+
+  /* Training */
+  let tBody;
+  if(rest){
+    tBody = `<div class="muted">Sabbath rest. Nothing to log — recovery is part of the plan.</div>`;
+  }else{
+    const exRows = data.exercises.map((ex,i)=>
+      `<input class="exname" type="text" placeholder="Exercise ${i+1}" value="${esc(ex.n)}" data-ex="${i}:n">
+       <input type="text" inputmode="decimal" placeholder="—" value="${esc(ex.s)}" data-ex="${i}:s">
+       <input type="text" inputmode="decimal" placeholder="—" value="${esc(ex.r)}" data-ex="${i}:r">
+       <input type="text" inputmode="decimal" placeholder="—" value="${esc(ex.w)}" data-ex="${i}:w">`
+    ).join('');
+    tBody = caffirmBlock('train',3) +
+      `<div class="hint">${day.n.toUpperCase()} · ${day.f}</div>` +
+      toggle('Session completed','trained') +
+      (day.pp
+        ? stepper('Push-ups · set 1','push',0)+stepper('Push-ups · set 2','push',1)+
+          stepper('Push-ups · set 3','push',2)+stepper('Pull-ups · set 1','pull',0)+
+          stepper('Pull-ups · set 2','pull',1)+stepper('Pull-ups · set 3','pull',2)
+        : `<div class="hint">Push-ups and pull-ups are logged on upper body days — Mon, Wed, Thu.</div>`) +
+      `<div class="stack"><span class="lab">Today's exercises</span>
+        <div class="exgrid">
+          <span class="h">Exercise</span><span class="h">Sets</span><span class="h">Reps</span><span class="h">Weight</span>
+          ${exRows}
+        </div></div>` +
+      field('How it felt (1–10)','feel','8','number');
+  }
+  const ppSum = day.pp ? `${data.push.reduce((a,b)=>a+b,0)+data.pull.reduce((a,b)=>a+b,0)} reps` : '';
+  html += card('train','#3F5A3A','Training', rest ? 'Rest' : ppSum, tBody);
+
+  /* Cardio */
+  html += card('cardio','#4C8C86','Cardio', data.cardioMin ? `${data.cardioMin} min` : '',
+    rest
+      ? `<div class="muted">No cardio on the Sabbath.</div>`
+      : caffirmBlock('cardio',2) +
+        `<div class="hint">Fasted walk after lifting · target 111–120 bpm</div>` +
+        toggle('Walk completed','cardioDone') +
+        field('Duration (min)','cardioMin','30','number') +
+        field('Steps today','steps','8000','number') +
+        area('Route','route','Where did you walk?')
+  );
+
+  /* Meals */
+  const mealTimes = ['12:00 PM','3:00 PM','6:30 PM','8:00 PM'];
+  let mBody = data.meals.map((m,i)=>
+    `<div class="stack"><span class="lab">Meal ${i+1} · ${mealTimes[i]}</span>
+      <input type="text" placeholder="What you ate" value="${esc(m.n)}" data-m="${i}:n" style="margin-bottom:7px">
+      <div class="row" style="border:0;padding:0">
+        <span class="lab">Protein (g)</span>
+        <input class="num" type="number" inputmode="decimal" placeholder="30" value="${esc(m.p)}" data-m="${i}:p">
+      </div></div>`).join('');
+  mBody += `<div class="total"><span class="k">Protein today</span>
+    <span class="v" id="ptot">${P}<small>/ 125g</small></span></div>`;
+  mBody = caffirmBlock('meals',2) + mBody;
+  if(sunday) mBody = `<div class="hint">Window closes at 8:00 PM sharp — the long fast begins.</div>` + mBody;
+  html += card('meals','#84A472', 'Meals', `${P}g`, mBody);
+
+  /* Spending */
+  const sp = [['food','Food &amp; groceries'],['supp','Supplements'],['gym','Gym &amp; training'],
+              ['biz','Business investment'],['other','Other']];
+  html += card('spend','#C79A45','Spending', S ? `$${S.toFixed(0)}` : '',
+    caffirmBlock('spend',2) +
+    sp.map(([k,l])=>
+      `<div class="row"><span class="lab">${l}</span>
+       <input class="num" type="number" inputmode="decimal" placeholder="0"
+       value="${esc(data.spend[k])}" data-sp="${k}"></div>`).join('') +
+    `<div class="total"><span class="k">Total today</span>
+      <span class="v" id="stot">$${S.toFixed(2)}</span></div>`
+  );
+
+  /* Learning */
+  html += card('learn','#5C7A8A','Learning', data.learn ? '●' : '',
+    caffirmBlock('learn',2) +
+    area('Book, article, or course','learn','What did you read or listen to?') +
+    area('Key insight','insight','The one thing worth remembering') +
+    field('Pages or minutes','learnMin','20','number')
+  );
+
+  /* Business */
+  html += card('biz','#B07C2C','Business', data.win ? '●' : '',
+    caffirmBlock('biz',3) +
+    area('Win of the day','win','However small — log it') +
+    field('Revenue ($)','revenue','0','number') +
+    area('Next step tomorrow','nextStep','One concrete action')
+  );
+
+  /* Evening Ritual — optional practices + nightly journal */
+  const practiceList = [
+    ['mirror','Mirror gazing'],
+    ['reverse',"Reverse journal — write tomorrow's story tonight"],
+    ['future','Imagine your future state'],
+    ['silence','20 min silence — no distractions'],
+    ['patterns',"Notice today's patterns — numbers, conversations, ideas"],
+  ];
+  const pCount = Object.values(data.practices).filter(Boolean).length;
+  const chips = practiceList.map(([k,l])=>
+    `<button class="tog" style="width:100%;text-align:left;padding:10px 12px;margin-top:7px;min-width:0;height:auto;line-height:1.35;font-weight:500;font-size:13px;${data.practices[k]?'background:rgba(110,143,99,.18);border-color:#6E8F63;color:#4C6444;':''}"
+      data-p="${k}">${data.practices[k]?'✓ ':''}${l}</button>`).join('');
+
+  html += card('evening','#948C77','Evening ritual', pCount?`${pCount} done`:'',
+    caffirmBlock('evening',2) +
+    `<div class="hint">Optional — pick at least one tonight</div>
+     <div class="stack" style="border-top:0">${chips}</div>` +
+    area('Anything worth remembering','practiceNote','What came up during the practice?') +
+    `<div class="hint" style="margin-top:10px">Every night — even a few sentences</div>` +
+    area('Evening journal','journal','How did today actually go?')
+  );
+
+  document.getElementById('cards').innerHTML = html;
+}
+
+/* ============ Events ============ */
+document.addEventListener('click', e=>{
+  const t = e.target.closest('[data-toggle],[data-t],[data-s],[data-w],[data-p]');
+  if(!t) return;
+
+  if(t.dataset.p){
+    const k = t.dataset.p;
+    data.practices[k] = !data.practices[k]; dirty = true;
+    render();
+    return;
+  }
+
+  if(t.dataset.toggle){
+    const id = t.dataset.toggle;
+    openSections.has(id) ? openSections.delete(id) : openSections.add(id);
+    t.closest('.card').classList.toggle('open');
+    return;
+  }
+  if(t.dataset.t){
+    const k = t.dataset.t;
+    data[k] = !data[k]; dirty = true;
+    t.classList.toggle('on', data[k]);
+    t.textContent = data[k] ? 'Done' : '—';
+    return;
+  }
+  if(t.dataset.s){
+    const [arr,i,d] = t.dataset.s.split(':');
+    const n = Math.max(0, data[arr][+i] + (+d));
+    data[arr][+i] = n; dirty = true;
+    const sv = document.querySelector(`[data-sv="${arr}:${i}"]`);
+    sv.textContent = n; sv.classList.toggle('zero', n===0);
+    const day = SPLIT[cur.getDay()];
+    if(day.pp){
+      document.querySelector('[data-meta="train"]').textContent =
+        `${data.push.reduce((a,b)=>a+b,0)+data.pull.reduce((a,b)=>a+b,0)} reps`;
+    }
+    return;
+  }
+  if(t.dataset.w !== undefined){
+    const i = +t.dataset.w;
+    data.water = (data.water === i+1) ? i : i+1;
+    dirty = true; render();
+    return;
+  }
+});
+
+document.addEventListener('input', e=>{
+  const el = e.target;
+  dirty = true;
+  if(el.dataset.f){ data[el.dataset.f] = el.value; }
+  else if(el.dataset.ex){
+    const [i,k] = el.dataset.ex.split(':');
+    data.exercises[+i][k] = el.value;
+  }
+  else if(el.dataset.m){
+    const [i,k] = el.dataset.m.split(':');
+    data.meals[+i][k] = el.value;
+    if(k==='p'){
+      const P = proteinTotal();
+      document.getElementById('ptot').innerHTML = `${P}<small>/ 125g</small>`;
+      document.querySelector('[data-meta="meals"]').textContent = `${P}g`;
+    }
+  }
+  else if(el.dataset.sp){
+    data.spend[el.dataset.sp] = el.value;
+    const S = spendTotal();
+    document.getElementById('stot').textContent = `$${S.toFixed(2)}`;
+    document.querySelector('[data-meta="spend"]').textContent = S ? `$${S.toFixed(0)}` : '';
+  }
+  else if(el.dataset.f === undefined && el.dataset.m === undefined){
+    // textareas bound via data-f already handled
+  }
+});
+
+async function go(delta){
+  if(!ready) return;
+  if(dirty) await save();
+  cur = new Date(cur.getTime() + delta*86400000);
+  data = await load(key(cur));
+  dirty = false;
+  render();
+  window.scrollTo({top:0,behavior:'instant'});
+}
+async function todayHandler(){
+  if(!ready) return;
+  if(dirty) await save();
+  cur = new Date(); data = await load(key(cur)); dirty=false; render();
+  window.scrollTo({top:0,behavior:'instant'});
+}
+document.getElementById('prev').onclick = ()=>go(-1);
+document.getElementById('next').onclick = ()=>go(1);
+document.getElementById('save').onclick = ()=>{ if(ready) save(); };
+document.getElementById('todaybtn').onclick = todayHandler;
+document.getElementById('tab-day').onclick = ()=>setView('day');
+document.getElementById('tab-dash').onclick = ()=>setView('dash');
+
+/* ============ Boot ============ */
+(async ()=>{
+  data = await load(key(cur));
+  ready = true;
+  setView('day');
+  render();
+  setInterval(drawArc, 60000);
+})();
+</script>
+</body>
+</html>
