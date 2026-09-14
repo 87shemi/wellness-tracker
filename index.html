@@ -393,7 +393,9 @@ const AFFIRM_COUNTS = { general:2, body:3, water:2, training:3, cardio:2, meals:
    ========================================================================= */
 const SUPABASE_URL = 'https://tkfhtfrpkjgnxhcyidlk.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_IcG9j3y6ypwkBSXmKomyEw_3lqx0wKg';
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+  auth: { persistSession: true, autoRefreshToken: true }
+});
 
 /* =========================================================================
    STATE
@@ -405,7 +407,8 @@ const state = {
   dayData: null,
   daySaveTimer: null,
   programStart: null,
-  allDaysCache: null
+  allDaysCache: null,
+  openCards: new Set()
 };
 
 /* =========================================================================
@@ -730,8 +733,9 @@ async function selectTab(tab){
 /* =========================================================================
    CARD HELPERS
    ========================================================================= */
-function cardShell(id, dotColor, title, bodyHtml, openByDefault){
-  return `<div class="card ${openByDefault?'':'collapsed'}" id="card-${id}">
+function cardShell(id, dotColor, title, bodyHtml){
+  const open = state.openCards.has(id);
+  return `<div class="card ${open?'':'collapsed'}" id="card-${id}">
     <div class="card-header" onclick="toggleCard('${id}')">
       <div class="title-wrap"><span class="dot" style="background:${dotColor}"></span><h3>${title}</h3></div>
       <span class="chev">▾</span>
@@ -740,6 +744,7 @@ function cardShell(id, dotColor, title, bodyHtml, openByDefault){
   </div>`;
 }
 function toggleCard(id){
+  if (state.openCards.has(id)) state.openCards.delete(id); else state.openCards.add(id);
   document.getElementById('card-'+id).classList.toggle('collapsed');
 }
 function switchHtml(id, on, onclickFn){
@@ -830,7 +835,7 @@ async function renderToday(){
       <div class="field"><label>Sleep last night (hrs)</label><input type="number" step="0.1" value="${d.sleep??''}" oninput="updateField('sleep', this.value===''?null:Number(this.value))"></div>
     </div>
     <div class="field"><label>Cycle notes</label><textarea oninput="updateField('cycleNotes', this.value)">${d.cycleNotes}</textarea></div>
-  `, false);
+  `);
 
   // Water & Supplements
   html += cardShell('water','var(--teal)','Water & Supplements', `
@@ -842,7 +847,7 @@ async function renderToday(){
     <div class="toggle-row"><div><div class="label">Creatine 5g</div><div class="sub">before bed</div></div>${switchHtml('sw-creatine', d.creatine, "toggleField('creatine')")}</div>
     ${!isRestDay(dt) ? `<div class="toggle-row"><div><div class="label">BCAAs + EAAs</div><div class="sub">during training</div></div>${switchHtml('sw-aminos', d.aminos, "toggleField('aminos')")}</div>` : ''}
     <div class="toggle-row"><div><div class="label">B12 / D3+K2 / Omega-3</div><div class="sub">with first meal</div></div>${switchHtml('sw-vitamins', d.vitamins, "toggleField('vitamins')")}</div>
-  `, false);
+  `);
 
   // Training
   let trainingBody = affirmHtml('training');
@@ -873,7 +878,7 @@ async function renderToday(){
     trainingBody += `</tbody></table>`;
     trainingBody += `<div class="field"><label>How it felt (1–10)</label><input type="number" min="1" max="10" value="${d.feel??''}" oninput="updateField('feel', this.value===''?null:Number(this.value))"></div>`;
   }
-  html += cardShell('training','var(--moss)','Training', trainingBody, false);
+  html += cardShell('training','var(--moss)','Training', trainingBody);
 
   // Cardio
   let cardioBody = affirmHtml('cardio');
@@ -887,7 +892,7 @@ async function renderToday(){
     </div>
     <div class="field"><label>Route</label><input type="text" value="${d.cardio.route}" oninput="updateCardio('route', this.value)"></div>`;
   }
-  html += cardShell('cardio','var(--teal)','Cardio', cardioBody, false);
+  html += cardShell('cardio','var(--teal)','Cardio', cardioBody);
 
   // Meals summary
   const totals = mealTotalsFor(d, dt);
@@ -898,7 +903,7 @@ async function renderToday(){
       <div class="stat-tile"><div class="num">${totals.protein}g</div><div class="lbl">Protein today</div></div>
     </div>
     <div style="margin-top:12px;"><a href="#" onclick="selectTab('meals');return false;">View meals →</a></div>
-  `, false);
+  `);
 
   // Spending
   const spendTotal = Object.values(d.spend).reduce((a,b)=>a+num(b,0),0);
@@ -914,7 +919,7 @@ async function renderToday(){
     </div>
     <div class="field"><label>Other</label><input type="number" value="${d.spend.other}" oninput="updateSpend('other', this.value)"></div>
     <div class="stat-tile"><div class="num">$${round1(spendTotal)}</div><div class="lbl">Total today</div></div>
-  `, false);
+  `);
 
   // Learning
   html += cardShell('learning','var(--taupe)','Learning', `
@@ -922,7 +927,7 @@ async function renderToday(){
     <div class="field"><label>Book / article / course</label><input type="text" value="${d.learning.source}" oninput="updateNested('learning','source', this.value)"></div>
     <div class="field"><label>Key insight</label><textarea oninput="updateNested('learning','insight', this.value)">${d.learning.insight}</textarea></div>
     <div class="field"><label>Pages or minutes</label><input type="number" value="${d.learning.amount}" oninput="updateNested('learning','amount', this.value)"></div>
-  `, false);
+  `);
 
   // Business
   html += cardShell('business','var(--gold)','Business', `
@@ -930,7 +935,7 @@ async function renderToday(){
     <div class="field"><label>Win of the day</label><textarea oninput="updateNested('business','win', this.value)">${d.business.win}</textarea></div>
     <div class="field"><label>Revenue / opportunity ($)</label><input type="number" value="${d.business.revenue}" oninput="updateNested('business','revenue', this.value)"></div>
     <div class="field"><label>Next step tomorrow</label><textarea oninput="updateNested('business','nextStep', this.value)">${d.business.nextStep}</textarea></div>
-  `, false);
+  `);
 
   // Evening
   const practiceLabels = { mirror:'Mirror gazing', reverseJournal:"Reverse journal", imagine:'Imagine your future state', silence:'20 min silence', patterns:"Notice today's patterns" };
@@ -941,7 +946,7 @@ async function renderToday(){
     </div>
     <div class="field"><label>Anything worth remembering</label><textarea oninput="updateNested('evening','practiceNote', this.value)">${d.evening.practiceNote}</textarea></div>
     <div class="field"><label>Nightly journal — a few sentences is enough, do this every night</label><textarea oninput="updateNested('evening','journal', this.value)">${d.evening.journal}</textarea></div>
-  `, false);
+  `);
 
   html += `<div class="signout-link" onclick="sb.auth.signOut()">Sign out</div>`;
 
