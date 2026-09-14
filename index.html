@@ -407,6 +407,7 @@ const AFFIRM_COUNTS = { general:2, body:3, water:2, training:3, cardio:2, meals:
 /* =========================================================================
    SUPABASE
    ========================================================================= */
+const BUILD_ID = '2026-09-14b';
 const SUPABASE_URL = 'https://tkfhtfrpkjgnxhcyidlk.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_IcG9j3y6ypwkBSXmKomyEw_3lqx0wKg';
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
@@ -995,6 +996,7 @@ async function renderToday(){
   `);
 
   html += `<div class="signout-link" onclick="sb.auth.signOut()">Sign out</div>`;
+  html += `<div style="text-align:center;font-size:10px;color:var(--ink-soft);margin-top:10px;font-family:'IBM Plex Mono',monospace;">build ${BUILD_ID}</div>`;
 
   main.innerHTML = html;
   updateDateNav();
