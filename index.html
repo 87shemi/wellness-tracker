@@ -219,7 +219,7 @@
 /* =========================================================================
    BUILD / BACKEND
    ========================================================================= */
-const BUILD_ID = '2026-09-23a';
+const BUILD_ID = '2026-09-23c';
 const SUPABASE_URL = 'https://tkfhtfrpkjgnxhcyidlk.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_IcG9j3y6ypwkBSXmKomyEw_3lqx0wKg';
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
@@ -360,13 +360,13 @@ const TARGETS_MONDAY  = { cal:825,  protein:97,  carb:66,  fat:17 };
    repsOnly: true  -> log reps only (bodyweight / timed). */
 const TRAINING_PROGRAM = {
   1: { key:'mon', title:'Upper A', subtitle:'Shoulders & back width', body:'upper', exercises:[
-    {name:'Seated DB shoulder press', group:'Shoulder press', sets:3, reps:'8-10', repTop:10, suggested:'25 lb DBs', note:'Stop just short of lockout'},
+    {name:'Seated DB shoulder press', group:'Shoulder press', sets:3, reps:'8-10', repTop:10, suggested:'15 lb DBs', note:'Stop just short of lockout. Keep arms in a bit to spare the shoulder.'},
     {name:'Wide-grip lat pulldown', group:'Vertical pull', sets:3, reps:'8-10', repTop:10, suggested:'90 lb', note:'Pull to upper chest, slight lean back'},
     {name:'Cable lateral raise', group:'Lateral delts', sets:3, reps:'12-15 / side', repTop:15, suggested:'10 lb', note:'Lead with the elbow'},
     {name:'Chest-supported DB row', group:'Horizontal pull', sets:3, reps:'10-12', repTop:12, suggested:'30 lb DBs', note:'Squeeze shoulder blades together'},
-    {name:'Incline DB press', group:'Chest', sets:2, reps:'10-12', repTop:12, suggested:'30 lb DBs', note:'Controlled 2-sec lowering'},
+    {name:'Incline DB press', group:'Chest', sets:2, reps:'10-12', repTop:12, suggested:'20 lb DBs', note:'Controlled 2-sec lowering. Elbows tucked in a bit, not flared.'},
     {name:'Face pull', group:'Rear delts', sets:2, reps:'15', repTop:15, suggested:'30 lb', note:'Rotate hands outward at the end'},
-    {name:'Push-ups', group:'Chest', sets:3, reps:'max reps', repTop:null, suggested:'Bodyweight', note:'Log reps per set', repsOnly:true},
+    {name:'Push-ups', group:'Chest', sets:3, reps:'max reps', repTop:null, suggested:'Bodyweight', note:'Log reps per set. Hands a little narrower, elbows in, if the shoulder complains.', repsOnly:true},
     {name:'Pull-ups (assisted if needed)', group:'Vertical pull', sets:3, reps:'max reps', repTop:null, suggested:'Bodyweight', note:'Log reps per set', repsOnly:true},
     {name:'Dead bug', group:'Core', sets:2, reps:'10 / side', repTop:null, suggested:'Bodyweight', note:'Lower back stays flat', repsOnly:true}
   ]},
@@ -382,11 +382,11 @@ const TRAINING_PROGRAM = {
   3: { key:'wed', title:'Upper B', subtitle:'Back & delts', body:'upper', exercises:[
     {name:'Pull-ups (assisted if needed)', group:'Vertical pull', sets:3, reps:'max reps', repTop:null, suggested:'Bodyweight', note:'Do these first while fresh. Log reps.', repsOnly:true},
     {name:'Single-arm DB row', group:'Horizontal pull', sets:3, reps:'8-10 / side', repTop:10, suggested:'40 lb', note:'Pull toward the hip'},
-    {name:'Arnold press', group:'Shoulder press', sets:3, reps:'10-12', repTop:12, suggested:'20 lb DBs', note:'Full rotation'},
+    {name:'Machine shoulder press', group:'Shoulder press', sets:3, reps:'10-12', repTop:12, suggested:'Start light', note:'Shoulder-friendly swap for the Arnold press. Neutral grip if the machine has one, arms in a bit.'},
     {name:'DB lateral raise', group:'Lateral delts', sets:4, reps:'12-15', repTop:15, suggested:'12 lb', note:'Your "capped shoulder" builder'},
     {name:'Close-grip seated cable row', group:'Horizontal pull', sets:3, reps:'10-12', repTop:12, suggested:'80 lb', note:'Chest tall'},
     {name:'Rear delt fly', group:'Rear delts', sets:3, reps:'15', repTop:15, suggested:'10 lb DBs', note:'Light and strict'},
-    {name:'Push-ups', group:'Chest', sets:3, reps:'max reps', repTop:null, suggested:'Bodyweight', note:'Log reps per set', repsOnly:true},
+    {name:'Push-ups', group:'Chest', sets:3, reps:'max reps', repTop:null, suggested:'Bodyweight', note:'Log reps per set. Hands a little narrower, elbows in, if the shoulder complains.', repsOnly:true},
     {name:'Tricep rope pushdown', group:'Arms', sets:2, reps:'12-15', repTop:15, suggested:'30 lb', note:'Elbows pinned'},
     {name:'Hammer curl', group:'Arms', sets:2, reps:'12', repTop:12, suggested:'20 lb DBs', note:'Controlled'},
     {name:'Stomach vacuum', group:'Core', sets:3, reps:'20-30 sec', repTop:null, suggested:'—', note:'', repsOnly:true}
@@ -958,7 +958,8 @@ async function getAllDays(){
   if (state.allDaysCache) return state.allDaysCache;
   const res = await sb.from('days').select('date,data').eq('user_id', state.userId).order('date');
   if (res.error){ console.error(res.error); return []; }
-  state.allDaysCache = res.data || [];
+  /* Days before the program start date are ignored everywhere — not deleted, just not counted. */
+  state.allDaysCache = (res.data || []).filter(r => !state.programStart || r.date >= state.programStart);
   return state.allDaysCache;
 }
 /* last 30 days, fetched once per session, used for "Last time" + French streak */
@@ -966,9 +967,16 @@ async function getRecentDays(){
   if (state.recentDaysCache) return state.recentDaysCache;
   const res = await sb.from('days').select('date,data').eq('user_id', state.userId).order('date', {ascending:false}).limit(30);
   if (res.error){ console.error(res.error); return []; }
-  state.recentDaysCache = res.data || [];
+  state.recentDaysCache = (res.data || []).filter(r => !state.programStart || r.date >= state.programStart);
   return state.recentDaysCache;
 }
+/* Earliest date the arrows will reach: the program start, or today if the program hasn't begun yet. */
+function navLowerBound(){
+  const t = isoDate(new Date());
+  if (!state.programStart) return t;
+  return state.programStart < t ? state.programStart : t;
+}
+function isBeforeProgram(dateStr){ return !!state.programStart && dateStr < state.programStart; }
 
 /* =========================================================================
    AUTH
@@ -1021,9 +1029,10 @@ document.getElementById('today-btn').addEventListener('click', async ()=>{
   await refreshTab();
 });
 async function changeDate(delta){
-  await flushPendingSave();
   const d = new Date(state.currentDate);
   d.setDate(d.getDate()+delta);
+  if (delta < 0 && isoDate(d) < navLowerBound()) return;  /* don't step back past the program start */
+  await flushPendingSave();
   state.currentDate = d;
   state.dayData = null;
   await refreshTab();
@@ -1037,6 +1046,13 @@ async function refreshTab(){
 function updateDateNav(){
   document.getElementById('date-label').textContent = fmtDateLabel(state.currentDate);
   document.getElementById('date-nav').style.display = state.currentTab === 'dashboard' ? 'none' : 'flex';
+  const prev = document.getElementById('prev-day');
+  if (prev){
+    const atBound = isoDate(state.currentDate) <= navLowerBound();
+    prev.disabled = atBound;
+    prev.style.opacity = atBound ? '0.3' : '1';
+    prev.title = atBound ? 'Start of your 90-day program' : '';
+  }
 }
 async function selectTab(tab){
   await flushPendingSave();
@@ -1229,6 +1245,10 @@ async function renderToday(){
 
   let html = '<div style="padding:0 0 4px;">'+dawnArcSvg(dt)+'<div style="text-align:center;font-size:12.5px;color:var(--ink-soft);margin-top:6px;font-family:\'IBM Plex Mono\',monospace;">'+esc(statusLine(dt))+'</div></div>';
 
+  if (isBeforeProgram(dateStr)){
+    html += '<div class="info-note">Your 90 days start '+esc(parseIso(state.programStart).toLocaleDateString('en-US',{weekday:'long', month:'long', day:'numeric'}))+'. Anything logged before then is not counted.</div>';
+  }
+
   /* 1. Body */
   html += cardShell('body','var(--rose)','Body',
     affirmHtml('body')
@@ -1321,7 +1341,15 @@ async function renderToday(){
     + '</div><div style="margin-top:12px;"><a href="#" onclick="selectTab(\'meals\');return false;">View meals →</a></div>'
   );
 
-  /* 6. Spending */
+  /* 6. Business */
+  html += cardShell('business','var(--gold)','Business',
+    affirmHtml('business')
+    + '<div class="field"><label>Win of the day</label><textarea oninput="updateNested(\'business\',\'win\',this.value)">'+esc(d.business.win)+'</textarea></div>'
+    + '<div class="field"><label>Revenue / opportunity ($)</label>'+numInput(d.business.revenue, "updateNested('business','revenue',this.value)", '$')+'</div>'
+    + '<div class="field"><label>Next step tomorrow</label><textarea oninput="updateNested(\'business\',\'nextStep\',this.value)">'+esc(d.business.nextStep)+'</textarea></div>'
+  );
+
+  /* 7. Spending */
   const spendTotal = Object.keys(d.spend).reduce((a,k)=>a+num(d.spend[k],0),0);
   html += cardShell('spending','var(--gold)','Spending',
     affirmHtml('spending')
@@ -1333,7 +1361,7 @@ async function renderToday(){
     + '<div class="stat-tile"><div class="num">$'+round1(spendTotal)+'</div><div class="lbl">Total today</div></div>'
   );
 
-  /* 7. Learning */
+  /* 8. Learning */
   const showSlot2 = state.learningSlot2 || (d.learning.entries[1] && (d.learning.entries[1].title || d.learning.entries[1].insight || d.learning.entries[1].minutes));
   function learnSlot(i){
     const e = d.learning.entries[i];
@@ -1352,7 +1380,7 @@ async function renderToday(){
     + (showSlot2 ? learnSlot(1) : '<button class="add-ex-btn" onclick="state.learningSlot2=true;renderToday()">+ Add another</button>')
   );
 
-  /* 8. French */
+  /* 9. French */
   const recent = state.recentDaysCache || [];
   const totalFrMin = recent.reduce((a,r)=>a + (r.data && r.data.french ? num(r.data.french.minutes,0) : 0), 0);
   const lvl = frenchLevel(totalFrMin);
@@ -1391,14 +1419,6 @@ async function renderToday(){
     fBody += '<div class="numbers-grid">'+FRENCH_NUMBERS.map(n=>'<div>'+n[0]+' — '+esc(n[1])+'</div>').join('')+'</div>';
   }
   html += cardShell('french','var(--french)','French 🇫🇷', fBody, 'french-card');
-
-  /* 9. Business */
-  html += cardShell('business','var(--gold)','Business',
-    affirmHtml('business')
-    + '<div class="field"><label>Win of the day</label><textarea oninput="updateNested(\'business\',\'win\',this.value)">'+esc(d.business.win)+'</textarea></div>'
-    + '<div class="field"><label>Revenue / opportunity ($)</label>'+numInput(d.business.revenue, "updateNested('business','revenue',this.value)", '$')+'</div>'
-    + '<div class="field"><label>Next step tomorrow</label><textarea oninput="updateNested(\'business\',\'nextStep\',this.value)">'+esc(d.business.nextStep)+'</textarea></div>'
-  );
 
   /* 10. Evening */
   const pl = { mirror:'Mirror gazing', reverseJournal:'Reverse journal', imagine:'Imagine your future state', silence:'20 min silence', patterns:"Notice today's patterns" };
@@ -1744,6 +1764,10 @@ function tile(v,l){ return '<div class="stat-tile"><div class="num">'+v+'</div><
 async function changeProgramStart(v){
   state.programStart = v;
   await setSetting('programStart', {date:v});
+  /* the start date decides which days are visible, so re-read them */
+  state.allDaysCache = null;
+  state.recentDaysCache = null;
+  await getRecentDays();
   await renderDashboard();
 }
 async function changeFrenchGoal(v){
