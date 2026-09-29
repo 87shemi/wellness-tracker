@@ -35,7 +35,7 @@
   header.top{position:sticky;top:0;z-index:20;background:var(--cream);padding:14px 16px 8px;border-bottom:1px solid var(--border);}
   header.top h1{font-size:19px;}
   .tabs{display:flex;gap:6px;margin-top:12px;}
-  .tab-btn{flex:1;border:1px solid var(--border);background:var(--card);border-radius:999px;padding:9px 6px;font-size:13px;font-weight:600;color:var(--ink-soft);cursor:pointer;}
+  .tab-btn{flex:1;border:1px solid var(--border);background:var(--card);border-radius:999px;padding:8px 5px;font-size:12px;line-height:1.2;font-weight:600;color:var(--ink-soft);cursor:pointer;}
   .tab-btn.active{background:var(--sage);color:#fff;border-color:var(--sage);}
   .date-nav{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:12px;}
   .navbtn{background:var(--card);border:1px solid var(--border);border-radius:10px;width:40px;height:40px;font-size:17px;cursor:pointer;color:var(--ink);}
@@ -181,9 +181,9 @@
     <h1>Nai&rsquo;s Training Tracker</h1>
     <div class="tabs">
       <button class="tab-btn" data-tab="today">Today</button>
+      <button class="tab-btn" data-tab="notes">Training Notes</button>
       <button class="tab-btn" data-tab="meals">Food</button>
-      <button class="tab-btn" data-tab="notes">Notes</button>
-      <button class="tab-btn" data-tab="dashboard">Progress</button>
+      <button class="tab-btn" data-tab="dashboard">Dashboard</button>
     </div>
     <div class="date-nav" id="date-nav">
       <button class="navbtn" id="prev-day">&lsaquo;</button>
@@ -206,7 +206,7 @@
    Same Supabase project as the other tracker. Row Level Security scopes every
    row to whoever is signed in, so Nai's data and Mum's never mix.
    ========================================================================= */
-const BUILD_ID = 'nai-2026-09-28a';
+const BUILD_ID = 'nai-2026-09-29a';
 const SUPABASE_URL = 'https://tkfhtfrpkjgnxhcyidlk.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_IcG9j3y6ypwkBSXmKomyEw_3lqx0wKg';
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
@@ -511,7 +511,7 @@ function defaultDay(dateStr){
     date: dateStr,
     weight: null, energy: null, sleep: null,
     stomach: { symptoms: [], notes: '' },
-    waterOz: 0, creatine: false, proteinShake: false, vitamins: false,
+    waterOz: 0, creatine: false, eaa: false, vitamins: false,
     sessionKey: s ? s.key : 'rest',
     trained: false, feel: null,
     exercises: exercisesFromSession(s, programWeek(dateStr)),
@@ -530,7 +530,7 @@ function mergeDay(base, saved){
   const out = JSON.parse(JSON.stringify(base));
   const legacy = {};
   ['weight','energy','sleep','trained','feel','mealNotes','sessionKey'].forEach(k=>{ if (saved[k] !== undefined) out[k] = saved[k]; });
-  ['creatine','proteinShake','vitamins'].forEach(k=>{ if (saved[k] !== undefined) out[k] = !!saved[k]; });
+  ['creatine','eaa','vitamins'].forEach(k=>{ if (saved[k] !== undefined) out[k] = !!saved[k]; });
   if (saved.waterOz !== undefined) out.waterOz = num(saved.waterOz, 0);
   if (saved.stomach) out.stomach = { symptoms: Array.isArray(saved.stomach.symptoms)?saved.stomach.symptoms.slice():[], notes: saved.stomach.notes||'' };
   if (saved.cardio) out.cardio = { done:!!saved.cardio.done, activity:saved.cardio.activity||'', minutes:saved.cardio.minutes||'', steps:saved.cardio.steps||'' };
@@ -717,6 +717,8 @@ function toggleCard(id){
   const el = document.getElementById('card-'+id); if (el) el.classList.toggle('collapsed');
 }
 function switchHtml(id, on, fn){ return '<button class="switch '+(on?'on':'')+'" id="'+id+'" onclick="'+fn+'"><span class="knob"></span></button>'; }
+/* A stored 0 shows as an empty box, so typing a number doesn't append to a leading "0". */
+function blankZero(v){ return num(v,0) === 0 ? '' : v; }
 function numInput(value, handler, placeholder, whole){
   return '<input type="text" inputmode="'+(whole?'numeric':'decimal')+'" value="'+esc(value==null?'':value)+'" placeholder="'+esc(placeholder||'')+'" oninput="'+handler+'">';
 }
@@ -777,8 +779,10 @@ async function renderToday(){
   /* Body */
   html += cardShell('body','var(--rose)','Body',
     affirmHtml('body')
+    + (dow(dt) === 1 ? '<div class="info-note">It’s Monday — weigh-in day. Same time, same conditions, first thing.</div>' : '')
     + '<div class="row2"><div class="field"><label>Weight (lbs)</label>'+numInput(d.weight, "updateField('weight', this.value===''?null:Number(this.value))", 'e.g. 165')+'</div>'
     + '<div class="field"><label>Sleep (hrs)</label>'+numInput(d.sleep, "updateField('sleep', this.value===''?null:Number(this.value))", 'e.g. 7.5')+'</div></div>'
+    + '<div class="water-sub" style="margin:-4px 0 12px;">Weigh yourself once a week — Monday morning, before eating. Daily weight bounces around too much to tell you anything.</div>'
     + '<div class="field"><label>Energy (1–10)</label>'+numInput(d.energy, "updateField('energy', this.value===''?null:Number(this.value))", '1–10', true)+'</div>'
     + '<div class="field"><label>Stomach / gut</label><div class="chip-row">'
     + GUT_SYMPTOMS.map(s=>'<div class="chip gut '+(d.stomach.symptoms.indexOf(s)!==-1?'selected':'')+'" onclick="toggleGut(\''+esc(s)+'\')">'+esc(s)+'</div>').join('')
@@ -790,12 +794,12 @@ async function renderToday(){
   const dots = Math.min(9, Math.floor(num(d.waterOz,0)/12));
   html += cardShell('water','var(--teal)','Water & Supplements',
     affirmHtml('water')
-    + '<div class="field"><label>Water — '+Math.round(num(d.waterOz,0))+' oz</label>'
+    + '<div class="field"><label id="water-label">Water — '+Math.round(num(d.waterOz,0))+' oz</label>'
     + '<div class="dots-row">'+Array.from({length:9},(_,i)=>'<div class="water-dot '+(i<dots?'filled':'')+'" onclick="tapWaterDot('+(i+1)+')"></div>').join('')+'</div>'
     + '<div class="water-sub">Each dot = 12 oz. Tap a dot, or type an exact amount.</div></div>'
-    + '<div class="field"><label>Exact oz</label>'+numInput(d.waterOz, "setWaterOz(this.value)", 'oz')+'</div>'
+    + '<div class="field"><label>Exact oz</label><input type="text" inputmode="decimal" id="water-oz-input" value="'+esc(blankZero(d.waterOz))+'" placeholder="oz" oninput="setWaterOz(this.value)"></div>'
     + '<div class="toggle-row"><div class="label">Creatine</div>'+switchHtml('sw-creatine', d.creatine, "toggleField('creatine')")+'</div>'
-    + '<div class="toggle-row"><div class="label">Protein shake</div>'+switchHtml('sw-protein', d.proteinShake, "toggleField('proteinShake')")+'</div>'
+    + '<div class="toggle-row"><div><div class="label">EAAs</div><div class="sub">around training</div></div>'+switchHtml('sw-eaa', d.eaa, "toggleField('eaa')")+'</div>'
     + '<div class="toggle-row"><div class="label">Vitamins</div>'+switchHtml('sw-vitamins', d.vitamins, "toggleField('vitamins')")+'</div>'
   );
 
@@ -811,6 +815,7 @@ async function renderToday(){
       tBody += '<div class="warmup"><h4>Warm-up — '+(sess.type==='upper'?'upper':'lower')+' day</h4><ol>'
         + WARMUPS[sess.type].map(w=>'<li>'+esc(w)+'</li>').join('') + '</ol></div>';
     }
+    tBody += '<div class="info-note">Not sure about a movement, what RPE means, or when to add weight? Check the <b>Training Notes</b> tab.</div>';
     tBody += '<div class="toggle-row"><div class="label">Session completed</div>'+switchHtml('sw-trained', d.trained, "toggleField('trained')")+'</div>';
     tBody += '<div style="margin-top:12px;">';
     d.exercises.forEach((ex,i)=>{
@@ -870,12 +875,12 @@ async function renderToday(){
   const spendTotal = Object.keys(d.spend).reduce((a,k)=>a+num(d.spend[k],0),0);
   html += cardShell('spending','var(--gold)','Spending',
     affirmHtml('spending')
-    + '<div class="row2"><div class="field"><label>Food & groceries</label>'+numInput(d.spend.food, "updateSpend('food', this.value)", '')+'</div>'
-    + '<div class="field"><label>Going out</label>'+numInput(d.spend.going_out, "updateSpend('going_out', this.value)", '')+'</div></div>'
-    + '<div class="row2"><div class="field"><label>Transport</label>'+numInput(d.spend.transport, "updateSpend('transport', this.value)", '')+'</div>'
-    + '<div class="field"><label>Books & supplies</label>'+numInput(d.spend.supplies, "updateSpend('supplies', this.value)", '')+'</div></div>'
-    + '<div class="field"><label>Other</label>'+numInput(d.spend.other, "updateSpend('other', this.value)", '')+'</div>'
-    + '<div class="stat-tile"><div class="num">'+round1(spendTotal)+'</div><div class="lbl">Total today</div></div>'
+    + '<div class="row2"><div class="field"><label>Food & groceries (£)</label>'+numInput(blankZero(d.spend.food), "updateSpend('food', this.value)", '£')+'</div>'
+    + '<div class="field"><label>Going out (£)</label>'+numInput(blankZero(d.spend.going_out), "updateSpend('going_out', this.value)", '£')+'</div></div>'
+    + '<div class="row2"><div class="field"><label>Transport (£)</label>'+numInput(blankZero(d.spend.transport), "updateSpend('transport', this.value)", '£')+'</div>'
+    + '<div class="field"><label>Books & supplies (£)</label>'+numInput(blankZero(d.spend.supplies), "updateSpend('supplies', this.value)", '£')+'</div></div>'
+    + '<div class="field"><label>Other (£)</label>'+numInput(blankZero(d.spend.other), "updateSpend('other', this.value)", '£')+'</div>'
+    + '<div class="stat-tile"><div class="num" id="spend-total">£'+round1(spendTotal)+'</div><div class="lbl">Total today</div></div>'
   );
 
   /* Learning */
@@ -914,7 +919,14 @@ async function renderToday(){
 function updateField(k,v){ state.dayData[k]=v; scheduleSave(); }
 function toggleField(k){ state.dayData[k]=!state.dayData[k]; scheduleSave(); renderToday(); }
 function updateNested(g,k,v){ state.dayData[g][k]=v; scheduleSave(); }
-function updateSpend(k,v){ state.dayData.spend[k] = v===''?0:num(v,0); scheduleSave(); renderToday(); }
+/* Update the running total in place. Re-rendering here would destroy the input
+   mid-keystroke and throw away focus and scroll position. */
+function updateSpend(k,v){
+  state.dayData.spend[k] = v===''?0:num(v,0);
+  const el = document.getElementById('spend-total');
+  if (el) el.textContent = '£' + round1(Object.keys(state.dayData.spend).reduce((a,x)=>a+num(state.dayData.spend[x],0),0));
+  scheduleSave();
+}
 function updateLearning(i,k,v){ state.dayData.learning.entries[i][k]=v; scheduleSave(); }
 function toggleCardioDone(){ state.dayData.cardio.done = !state.dayData.cardio.done; scheduleSave(); renderToday(); }
 function togglePractice(k){ state.dayData.evening.practices[k] = !state.dayData.evening.practices[k]; scheduleSave(); renderToday(); }
@@ -926,11 +938,25 @@ function toggleGut(s){
   scheduleSave(); renderToday();
 }
 function toggleUni(a){ toggleInArray(state.dayData.uni.activities, a); scheduleSave(); renderToday(); }
-function setWaterOz(v){ state.dayData.waterOz = v===''?0:num(v,0); scheduleSave(); renderToday(); }
+/* Same reasoning as updateSpend: sync the dots and label in place, never re-render. */
+function syncWaterUI(){
+  const oz = num(state.dayData.waterOz,0);
+  const filled = Math.min(9, Math.floor(oz/12));
+  document.querySelectorAll('.water-dot').forEach((el,i)=>el.classList.toggle('filled', i < filled));
+  const lbl = document.getElementById('water-label');
+  if (lbl) lbl.textContent = 'Water — ' + Math.round(oz) + ' oz';
+}
+function setWaterOz(v){
+  state.dayData.waterOz = v===''?0:num(v,0);
+  syncWaterUI(); scheduleSave();
+}
 function tapWaterDot(n){
   const cur = Math.floor(num(state.dayData.waterOz,0)/12);
   state.dayData.waterOz = (cur === n) ? (n-1)*12 : n*12;
-  scheduleSave(); renderToday();
+  syncWaterUI();
+  const inp = document.getElementById('water-oz-input');
+  if (inp) inp.value = state.dayData.waterOz;
+  scheduleSave();
 }
 function updateSet(ei,si,k,v){ state.dayData.exercises[ei].sets[si][k]=v; scheduleSave(); }
 function removeExercise(i){ state.dayData.exercises.splice(i,1); scheduleSave(); renderToday(); }
@@ -1114,7 +1140,7 @@ async function renderDashboard(){
     + tile(avg(cSum,foodDays)+'g','Avg carbs/day')
     + tile(avg(fSum,foodDays)+'g','Avg fat/day')
     + tile(avg(waterSum,waterDays)+'oz','Avg water/day')
-    + tile(Math.round(totalSpend),'Total spend')
+    + tile('£'+Math.round(totalSpend),'Total spend')
     + tile(uniActivities,'Uni activities logged')
     + tile(learningSessions,'Learning sessions')
     + tile(journals,'Journal entries')
