@@ -219,7 +219,7 @@
 /* =========================================================================
    BUILD / BACKEND
    ========================================================================= */
-const BUILD_ID = '2026-09-23c';
+const BUILD_ID = '2026-09-28a';
 const SUPABASE_URL = 'https://tkfhtfrpkjgnxhcyidlk.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_IcG9j3y6ypwkBSXmKomyEw_3lqx0wKg';
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
@@ -601,6 +601,17 @@ function eatingWindow(d){
   return { open:'10:00', close:'18:30' };                // Tue–Sat
 }
 function sessionFor(d){ return TRAINING_PROGRAM[dow(d)]; }
+/* The workout can be overridden per day, so look sessions up by key as well as by weekday. */
+function sessionByKey(key){
+  for (const k in TRAINING_PROGRAM){ if (TRAINING_PROGRAM[k].key === key) return TRAINING_PROGRAM[k]; }
+  return null;
+}
+function allSessions(){
+  return [1,2,3,4,5,0,6].map(n=>TRAINING_PROGRAM[n]);
+}
+function effectiveSession(d, dt){
+  return (d && d.sessionKey && sessionByKey(d.sessionKey)) || sessionFor(dt);
+}
 
 /* program week / phase */
 function programDayNumber(dateStr){
@@ -618,10 +629,12 @@ function phaseName(week){
   if (week === 8) return 'Recovery week';
   return 'Hold strength';
 }
+/* Cardio days are weekdays only — no Saturday (Sabbath) and no Sunday.
+   Sunday's session was moved to Tuesday so the weekly volume target still holds. */
 function cardioPlan(week){
-  if (week <= 4) return { sessions:3, range:'15–20 min', days:[3,4,0] };
-  if (week <= 8) return { sessions:4, range:'20–25 min', days:[3,4,0,1] };
-  return { sessions:5, range:'25–30 min', days:[3,4,0,1,5] };
+  if (week <= 4) return { sessions:3, range:'15–20 min', days:[2,3,4] };
+  if (week <= 8) return { sessions:4, range:'20–25 min', days:[1,2,3,4] };
+  return { sessions:5, range:'25–30 min', days:[1,2,3,4,5] };
 }
 
 /* seeded shuffle affirmations */
@@ -678,8 +691,8 @@ function defaultMealsFor(dateStr){
   built.forEach(m=>m.items.forEach(it=>{ if (it.isFish) applyFish(it); }));
   return built;
 }
-function defaultExercisesFor(dateStr){
-  const s = sessionFor(dateStr);
+function defaultExercisesFor(dateStr){ return exercisesFromSession(sessionFor(dateStr)); }
+function exercisesFromSession(s){
   if (!s || !s.exercises.length) return [];
   return s.exercises.map(ex => ({
     exerciseName: ex.name,
@@ -1092,12 +1105,13 @@ function numInput(value, handler, placeholder, whole){
 /* =========================================================================
    DAWN ARC
    ========================================================================= */
-function dawnArcSvg(d){
+function dawnArcSvg(d, restOverride){
   const W=358, H=54, y=20, h=14, total=24*60;
   const x = m => (m/total)*W;
   const segs = [{f:0,t:total,c:'#EDE9DC'}];
   const x0 = dow(d);
-  if (!isRestDay(d)) segs.push({f:4*60,t:5*60+30,c:'var(--moss)'});
+  const resting = restOverride === undefined ? isRestDay(d) : !!restOverride;
+  if (!resting) segs.push({f:4*60,t:5*60+30,c:'var(--moss)'});
   const win = eatingWindow(d);
   const op = win.open.split(':').map(Number), cl = win.close.split(':').map(Number);
   const openMin = op[0]*60+op[1], closeMin = cl[0]*60+cl[1];
@@ -1241,9 +1255,10 @@ async function renderToday(){
   const dateStr = isoDate(dt);
   const main = document.getElementById('main-content');
   const week = programWeek(dateStr);
-  const sess = sessionFor(dt);
+  const sess = effectiveSession(d, dt);
+  const restToday = sess.body === 'rest';
 
-  let html = '<div style="padding:0 0 4px;">'+dawnArcSvg(dt)+'<div style="text-align:center;font-size:12.5px;color:var(--ink-soft);margin-top:6px;font-family:\'IBM Plex Mono\',monospace;">'+esc(statusLine(dt))+'</div></div>';
+  let html = '<div style="padding:0 0 4px;">'+dawnArcSvg(dt, restToday)+'<div style="text-align:center;font-size:12.5px;color:var(--ink-soft);margin-top:6px;font-family:\'IBM Plex Mono\',monospace;">'+esc(statusLine(dt))+'</div></div>';
 
   if (isBeforeProgram(dateStr)){
     html += '<div class="info-note">Your 90 days start '+esc(parseIso(state.programStart).toLocaleDateString('en-US',{weekday:'long', month:'long', day:'numeric'}))+'. Anything logged before then is not counted.</div>';
@@ -1273,16 +1288,18 @@ async function renderToday(){
     + '</div>'
     + '<div class="field"><label>Exact oz</label>'+numInput(d.waterOz, "setWaterOz(this.value)", 'oz')+'</div>'
     + '<div class="toggle-row"><div><div class="label">Creatine 5g</div><div class="sub">before bed</div></div>'+switchHtml('sw-creatine', d.creatine, "toggleField('creatine')")+'</div>'
-    + (!isRestDay(dt) ? '<div class="toggle-row"><div><div class="label">BCAAs + EAAs</div><div class="sub">during training</div></div>'+switchHtml('sw-aminos', d.aminos, "toggleField('aminos')")+'</div>' : '')
+    + (!restToday ? '<div class="toggle-row"><div><div class="label">BCAAs + EAAs</div><div class="sub">during training</div></div>'+switchHtml('sw-aminos', d.aminos, "toggleField('aminos')")+'</div>' : '')
     + '<div class="toggle-row"><div><div class="label">B12 / D3+K2 / Omega-3</div><div class="sub">with first meal</div></div>'+switchHtml('sw-vitamins', d.vitamins, "toggleField('vitamins')")+'</div>'
   );
 
   /* 3. Training */
   let tBody = affirmHtml('training');
-  if (isRestDay(dt)){
-    tBody += '<div class="rest-msg">Sabbath rest — no training today.</div>';
+  tBody += '<div class="field"><label>Workout for today</label><select onchange="changeSession(this.value)">'
+    + allSessions().map(s=>'<option value="'+s.key+'" '+(s.key===sess.key?'selected':'')+'>'+esc(s.title)+(s.subtitle?' — '+esc(s.subtitle):'')+'</option>').join('')
+    + '</select></div>';
+  if (restToday){
+    tBody += '<div class="rest-msg">'+(isRestDay(dt) ? 'Sabbath rest — no training today.' : 'Rest day — no training logged.')+'</div>';
   } else {
-    tBody += '<div style="font-size:13px;color:var(--ink-soft);margin-bottom:10px;"><b>'+esc(sess.title)+'</b> — '+esc(sess.subtitle)+'</div>';
     tBody += '<div class="toggle-row"><div class="label">Session completed</div>'+switchHtml('sw-trained', d.trained, "toggleField('trained')")+'</div>';
     tBody += '<div style="margin-top:12px;">';
     d.exercises.forEach((ex, i)=>{
@@ -1317,7 +1334,9 @@ async function renderToday(){
   } else {
     const plan = cardioPlan(week);
     const scheduled = plan.days.indexOf(dow(dt)) !== -1;
-    cBody += '<div class="info-note">Week '+week+' target: '+plan.sessions+' sessions × '+plan.range+'. Today is <b>'+(scheduled?'Scheduled':'Optional')+'</b>.</div>';
+    cBody += '<div class="info-note">Week '+week+' target: '+plan.sessions+' sessions × '+plan.range+'. Today is <b>'+(scheduled?'Scheduled':'Optional')+'</b>.'
+      + (dow(dt) === 0 ? ' Cardio is not scheduled on Sundays — log steps if you like, but nothing is expected.' : '')
+      + '</div>';
     cBody += '<div class="toggle-row"><div class="label">Stair climber done</div>'+switchHtml('sw-stair', d.cardio.stairDone, "toggleCardioDone()")+'</div>';
     cBody += '<div class="field" style="margin-top:12px;"><label>Stair climber minutes</label>'+numInput(d.cardio.stairMinutes, "updateCardio('stairMinutes', this.value)", 'min', true)+'</div>';
     cBody += '<div class="field"><label>Intensity</label><div class="chip-row">'
@@ -1454,6 +1473,19 @@ function tapWaterDot(n){
   scheduleSave(); renderToday();
 }
 function updateSet(ei,si,k,v){ state.dayData.exercises[ei].sets[si][k]=v; scheduleSave(); }
+function changeSession(key){
+  const d = state.dayData;
+  const s = sessionByKey(key);
+  if (!s || key === d.sessionKey) return;
+  const logged = (d.exercises||[]).some(e=>(e.sets||[]).some(st=>String(st.weight||'').trim() || String(st.reps||'').trim()));
+  if (logged && !confirm('Switching the workout replaces today’s exercise list and clears the sets you have already logged. Continue?')){
+    renderToday();   /* put the dropdown back to what it was */
+    return;
+  }
+  d.sessionKey = key;
+  d.exercises = exercisesFromSession(s);
+  scheduleSave(); renderToday();
+}
 function removeExercise(i){ state.dayData.exercises.splice(i,1); scheduleSave(); renderToday(); }
 function openSwap(i){
   const ex = state.dayData.exercises[i];
